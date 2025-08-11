@@ -36,9 +36,48 @@
         #log-output { flex-grow: 1; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; line-height: 1.8; overflow-y: auto; }
         #log-output div { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; }
         .tutorial-nav { display: flex; justify-content: space-between; margin-top: 15px; }
+        /* ================= Style for Back to Main Site Button ================= */
+        #back-to-main-site-btn {
+            position: fixed; /* شناور و ثابت ماندن دکمه */
+            top: 20px;
+            left: 20px;
+            z-index: 1000; /* اطمینان از اینکه روی همه عناصر باشد */
+            
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #1a1a2e; /* رنگ متن تیره برای خوانایی */
+            
+            display: flex;
+            align-items: center;
+            padding: 8px 15px;
+            border-radius: 30px;
+            
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        #back-to-main-site-btn svg {
+            margin-left: 8px; /* فاصله آیکون از متن */
+        }
+
+        #back-to-main-site-btn:hover {
+            transform: translateY(-2px); /* کمی بالا رفتن هنگام هاور */
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.5);
+            background-color: white;
+        }
+        /* =================================================================== */
     </style>
 </head>
 <body>
+    <a href="https://algorithm.yawar.ir/developer/shoaibi" id="back-to-main-site-btn" title="بازگشت به سایت اصلی">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="24" height="24">
+        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8h5z"/>
+    </svg>
+    <span>بازگشت</span>
+</a>
     <div class="dashboard">
         <div class="input-panel panel">
             <h2>ورودی‌ها</h2>
