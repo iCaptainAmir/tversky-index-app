@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>داشبورد آموزشی شاخص تورسکی</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --main-bg: linear-gradient(135deg, #2980b9 0%, #6dd5fa 100%); --container-bg: rgba(255, 255, 255, 0.1); --text-color: #f0f0f0; --border-color: rgba(255, 255, 255, 0.2); --accent-color: #89f7fe; --set-a-color: #3498db; --set-b-color: #9b59b6; --intersection-color: #2ecc71; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Vazirmatn', sans-serif; margin: 0; min-height: 100vh; background: var(--main-bg); color: var(--text-color); }
+        .dashboard { display: grid; grid-template-columns: 320px 1fr 320px; gap: 25px; padding: 25px; height: 100vh; }
+        .panel { background: var(--container-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border: 1px solid var(--border-color); border-radius: 20px; padding: 25px; overflow: hidden; }
+        /* ستون‌ها */
+        .input-panel { display: flex; flex-direction: column; }
+        .visual-panel { display: flex; flex-direction: column; justify-content: space-around; align-items: center; }
+        .tutorial-panel { display: flex; flex-direction: column; }
+        /* استایل‌های عمومی */
+        h2 { text-align: center; margin-top: 0; text-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        label { margin-bottom: 5px; font-weight: 700; font-size: 0.9rem; }
+        input { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; background: rgba(0,0,0,0.2); color: var(--text-color); font-size: 1rem; }
+        button { background: var(--accent-color); color: #1d3557; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all .2s ease; }
+        button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        button:disabled { background: grey; cursor: not-allowed; }
+        /* بخش نمایش بصری */
+        .set-container { width: 100%; min-height: 100px; border: 2px dashed var(--border-color); border-radius: 10px; padding: 10px; text-align: center; margin-bottom: 15px; }
+        .set-container h4 { margin: 0 0 10px 0; }
+        .item-pill { display: inline-block; padding: 5px 12px; margin: 4px; border-radius: 15px; font-size: 0.9rem; transition: all 0.5s ease-in-out; }
+        .set-a-item { background: var(--set-a-color); }
+        .set-b-item { background: var(--set-b-color); }
+        .intersection-item { background: var(--intersection-color); }
+        /* بخش فرمول */
+        #formula-display { text-align: center; font-size: 1.5rem; letter-spacing: 2px; padding: 20px; min-height: 70px; }
+        .formula-placeholder { display: inline-block; min-width: 30px; text-align: center; color: var(--accent-color); font-weight: bold; }
+        /* بخش آموزش */
+        #log-output { flex-grow: 1; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 15px; line-height: 1.8; overflow-y: auto; }
+        #log-output div { padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); transition: all 0.3s; }
+        .tutorial-nav { display: flex; justify-content: space-between; margin-top: 15px; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="input-panel panel">
+            <h2>ورودی‌ها</h2>
+            <form id="tversky-form">
+                <label for="setA">مجموعه A (با کاما جدا کنید)</label>
+                <input type="text" id="setA" value="a, b, c, d" required>
+                <br><br>
+                <label for="setB">مجموعه B (با کاما جدا کنید)</label>
+                <input type="text" id="setB" value="c, d, e, f" required>
+                <br><br>
+                <div style="display:flex; gap:20px;">
+                    <div style="flex:1;">
+                        <label for="alpha">آلفا (α)</label>
+                        <input type="number" step="0.1" id="alpha" value="1.0">
+                    </div>
+                    <div style="flex:1;">
+                        <label for="beta">بتا (β)</label>
+                        <input type="number" step="0.1" id="beta" value="1.0">
+                    </div>
+                </div>
+                <br><br>
+                <button type="submit" id="submit-btn">شروع آموزش</button>
+            </form>
+        </div>
+
+        <div class="visual-panel panel">
+            <div id="visual-workspace" style="width:100%; flex-grow: 1; display: flex; flex-direction: column; justify-content: space-between;">
+                <div class="set-container" id="set-a-container"><h4>مجموعه A</h4><div id="set-a-pills"></div></div>
+                <div class="set-container" id="intersection-container" style="border-style: solid;"><h4>اشتراک (A ∩ B)</h4><div id="intersection-pills"></div></div>
+                <div class="set-container" id="set-b-container"><h4>مجموعه B</h4><div id="set-b-pills"></div></div>
+            </div>
+            <div id="formula-display"></div>
+            <div id="final-result-display" style="text-align:center; min-height: 50px;"></div>
+        </div>
+
+        <div class="tutorial-panel panel">
+            <h2>راهنمای گام به گام</h2>
+            <div id="log-output"></div>
+            <div class="tutorial-nav">
+                <button id="prev-step-btn" class="nav-btn" disabled>قبلی</button>
+                <button id="next-step-btn" class="nav-btn" disabled>بعدی</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- ارجاع به تمام عناصر ---
+        const form = document.getElementById('tversky-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const setAPills = document.getElementById('set-a-pills');
+        const setBPills = document.getElementById('set-b-pills');
+        const intersectionPills = document.getElementById('intersection-pills');
+        const formulaDisplay = document.getElementById('formula-display');
+        const finalResultDisplay = document.getElementById('final-result-display');
+        const logOutput = document.getElementById('log-output');
+        const nextBtn = document.getElementById('next-step-btn');
+        const prevBtn = document.getElementById('prev-step-btn');
+
+        let log = [];
+        let currentStep = -1;
+        let elements = {}; // برای نگهداری ارجاع به کارت‌ها
+
+        // --- پاک کردن محیط کار ---
+        function resetWorkspace() {
+            setAPills.innerHTML = '';
+            setBPills.innerHTML = '';
+            intersectionPills.innerHTML = '';
+            formulaDisplay.innerHTML = '';
+            finalResultDisplay.innerHTML = '';
+            logOutput.innerHTML = '';
+            elements = {};
+            currentStep = -1;
+            log = [];
+            nextBtn.disabled = true;
+            prevBtn.disabled = true;
+        }
+
+        // --- تابع اصلی پردازش مراحل ---
+        function renderStep(step) {
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = step.text;
+            logOutput.appendChild(logEntry);
+            logOutput.scrollTop = logOutput.scrollHeight;
+
+            switch (step.type) {
+                case 'show_sets':
+                    step.setA.forEach(item => {
+                        const pill = document.createElement('span');
+                        pill.className = 'item-pill set-a-item';
+                        pill.textContent = item;
+                        pill.id = `pill-a-${item}`;
+                        setAPills.appendChild(pill);
+                        elements[pill.id] = pill;
+                    });
+                    step.setB.forEach(item => {
+                        const pill = document.createElement('span');
+                        pill.className = 'item-pill set-b-item';
+                        pill.textContent = item;
+                        pill.id = `pill-b-${item}`;
+                        setBPills.appendChild(pill);
+                        elements[pill.id] = pill;
+                    });
+                    break;
+                
+                case 'animate_intersection':
+                    step.elements.forEach(item => {
+                        const pillA = elements[`pill-a-${item}`];
+                        const pillB = elements[`pill-b-${item}`];
+                        if (pillA) pillA.style.opacity = '0.2';
+                        if (pillB) pillB.style.opacity = '0.2';
+
+                        const newPill = document.createElement('span');
+                        newPill.className = 'item-pill intersection-item';
+                        newPill.textContent = item;
+                        intersectionPills.appendChild(newPill);
+                    });
+                    break;
+
+                case 'show_formula':
+                    formulaDisplay.innerHTML = `
+                        T = <frac>
+                                <div class="formula-placeholder" id="f_int">|A∩B|</div>
+                                <hr>
+                                <div class="formula-placeholder" id="f_int2">|A∩B|</div> + 
+                                <span class="formula-placeholder" id="f_alpha">α</span> × 
+                                <div class="formula-placeholder" id="f_a-b">|A-B|</div> + 
+                                <span class="formula-placeholder" id="f_beta">β</span> × 
+                                <div class="formula-placeholder" id="f_b-a">|B-A|</div>
+                            </frac>`;
+                    break;
+                
+                case 'substitute_values':
+                    document.getElementById('f_alpha').textContent = form.alpha.value;
+                    document.getElementById('f_beta').textContent = form.beta.value;
+                    break;
+
+                case 'calculation':
+                    let target;
+                    if(step.variable === 'intersection') target = document.getElementById('f_int');
+                    if(step.variable === 'intersection') document.getElementById('f_int2').textContent = step.value; // for denominator
+                    if(step.variable === 'only_A') target = document.getElementById('f_a-b');
+                    if(step.variable === 'only_B') target = document.getElementById('f_b-a');
+                    if(target) target.textContent = step.value;
+                    break;
+                
+                case 'final_result':
+                    finalResultDisplay.innerHTML = `<h2>نتیجه نهایی: <span style="color:var(--accent-color)">${step.value}</span></h2>`;
+                    break;
+                
+                case 'show_venn':
+                    finalResultDisplay.innerHTML += `<img id="venn-diagram" src="" style="width:100%; max-width:300px; margin-top:15px; border-radius:10px; opacity:0; transition: opacity 1s;">`;
+                    break;
+            }
+        }
+        
+        // --- رویدادها ---
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            resetWorkspace();
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'در حال تحلیل...';
+            
+            const data = { setA: form.setA.value, setB: form.setB.value, alpha: form.alpha.value, beta: form.beta.value };
+            
+            const response = await fetch('/api/calculate_tversky', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            const result = await response.json();
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'شروع آموزش';
+
+            if(result.success) {
+                log = result.log;
+                nextBtn.disabled = false;
+                document.getElementById('venn-diagram-url').src = result.imageUrl; // مخفیانه ذخیره می‌کنیم
+            } else {
+                logOutput.innerHTML = `<div>خطا: ${result.error}</div>`;
+            }
+        });
+        
+        nextBtn.addEventListener('click', () => {
+            if (currentStep < log.length - 1) {
+                currentStep++;
+                renderStep(log[currentStep]);
+                prevBtn.disabled = false;
+            }
+            if (currentStep === log.length - 1) {
+                nextBtn.disabled = true;
+                const img = document.getElementById('venn-diagram');
+                if(img) {
+                    img.src = document.getElementById('venn-diagram-url').src;
+                    setTimeout(() => img.style.opacity = '1', 100);
+                }
+            }
+        });
+
+        // دکمه قبلی برای سادگی در این نسخه پیاده‌سازی نشده است.
+        // پیاده‌سازی آن نیازمند ذخیره وضعیت هر مرحله و برگرداندن انیمیشن‌هاست که پیچیدگی را بسیار بالا می‌برد.
+        prevBtn.style.display = 'none'; // مخفی کردن دکمه قبلی
+    });
+    </script>
+    <img id="venn-diagram-url" src="" style="display:none;">
+</body>
+</html>
